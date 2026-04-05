@@ -1,0 +1,102 @@
+{
+  "info": {
+    "name": "Multi-Agent Cooking Assistant",
+    "description": "API collection for the Multi-Agent Cooking Assistant. Set the `base_url` variable to switch between local and deployed environments.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/health",
+        "description": "Liveness probe. Returns {\"status\": \"ok\"} with HTTP 200."
+      },
+      "response": [
+        {
+          "name": "200 OK",
+          "status": "OK",
+          "code": 200,
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "body": "{\"status\": \"ok\"}"
+        }
+      ]
+    },
+    {
+      "name": "Chef Path — Cook Pasta",
+      "request": {
+        "method": "POST",
+        "url": "{{base_url}}/query",
+        "description": "Recipe request. Intent agent classifies as `chef_agent` and returns a structured recipe with ingredients, steps, and tips.",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"query\": \"I want to cook pasta\"\n}",
+          "options": { "raw": { "language": "json" } }
+        }
+      },
+      "response": [
+        {
+          "name": "200 OK — chef_agent",
+          "status": "OK",
+          "code": 200,
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "body": "{\n  \"intent\": \"chef_agent\",\n  \"data\": {\n    \"dish_name\": \"Pasta\",\n    \"ingredients\": [\n      \"2 cups all-purpose flour\",\n      \"3 large eggs\",\n      \"1/2 teaspoon salt\",\n      \"1 tablespoon olive oil\"\n    ],\n    \"steps\": [\n      \"Step 1: Combine flour and salt in a large bowl.\",\n      \"Step 2: Make a well and crack eggs into the center.\",\n      \"Step 3: Mix and knead dough for 8-10 minutes.\",\n      \"Step 4: Rest dough for 30 minutes, then roll and cut.\",\n      \"Step 5: Cook in boiling salted water for 2-4 minutes.\"\n    ],\n    \"tips\": [\n      \"Knead well for a smooth texture.\",\n      \"Add water if dough is too dry.\"\n    ],\n    \"video_links\": []\n  }\n}"
+        }
+      ]
+    },
+    {
+      "name": "Grocer Path — Buy Butter Chicken Ingredients",
+      "request": {
+        "method": "POST",
+        "url": "{{base_url}}/query",
+        "description": "Shopping request. Intent agent classifies as `grocer_agent`. LLM extracts ingredients for butter chicken, pricing service fetches mock prices concurrently across stores.",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"query\": \"Buy ingredients for butter chicken\"\n}",
+          "options": { "raw": { "language": "json" } }
+        }
+      },
+      "response": [
+        {
+          "name": "200 OK — grocer_agent",
+          "status": "OK",
+          "code": 200,
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "body": "{\n  \"intent\": \"grocer_agent\",\n  \"data\": {\n    \"items\": [\n      { \"name\": \"chicken\", \"price\": 5.99, \"store\": \"Walmart\" },\n      { \"name\": \"butter\", \"price\": 3.49, \"store\": \"Walmart\" },\n      { \"name\": \"cream\", \"price\": 2.99, \"store\": \"Generic Store\" },\n      { \"name\": \"tomato puree\", \"price\": 0.89, \"store\": \"Walmart\" },\n      { \"name\": \"onion\", \"price\": 0.59, \"store\": \"Walmart\" },\n      { \"name\": \"garlic\", \"price\": 0.79, \"store\": \"Walmart\" }\n    ],\n    \"total_cost\": 14.74,\n    \"store_breakdown\": {\n      \"Walmart\": [\n        { \"name\": \"chicken\", \"price\": 5.99, \"store\": \"Walmart\" },\n        { \"name\": \"butter\", \"price\": 3.49, \"store\": \"Walmart\" },\n        { \"name\": \"tomato puree\", \"price\": 0.89, \"store\": \"Walmart\" },\n        { \"name\": \"onion\", \"price\": 0.59, \"store\": \"Walmart\" },\n        { \"name\": \"garlic\", \"price\": 0.79, \"store\": \"Walmart\" }\n      ],\n      \"Generic Store\": [\n        { \"name\": \"cream\", \"price\": 2.99, \"store\": \"Generic Store\" }\n      ]\n    }\n  }\n}"
+        }
+      ]
+    },
+    {
+      "name": "Validation Error — Empty Query",
+      "request": {
+        "method": "POST",
+        "url": "{{base_url}}/query",
+        "description": "Sends a whitespace-only query. Pydantic validator rejects it before any LLM call. Expect HTTP 422.",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"query\": \"   \"\n}",
+          "options": { "raw": { "language": "json" } }
+        }
+      },
+      "response": [
+        {
+          "name": "422 Unprocessable Entity",
+          "status": "Unprocessable Entity",
+          "code": 422,
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "body": "{\n  \"detail\": [\n    { \"msg\": \"Value error, query must not be empty or whitespace\" }\n  ]\n}"
+        }
+      ]
+    }
+  ]
+}
