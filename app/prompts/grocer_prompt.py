@@ -12,9 +12,9 @@ Given a dish name, return a clean shopping list of ingredient names
 suitable for searching in a grocery store (no quantities, no prep notes).
 
 Respond with ONLY valid JSON — no explanation, no markdown, no extra text:
-{
+{{
   "ingredients": ["ingredient1", "ingredient2", ...]
-}
+}}
 """
 
 # {dish_name} is filled in by the Grocer Agent before calling llm_client.

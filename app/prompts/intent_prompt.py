@@ -17,11 +17,11 @@ Also extract:
 - ingredients : A list of specific ingredients mentioned by the user, if any. Otherwise null.
 
 Respond with ONLY valid JSON — no explanation, no markdown, no extra text:
-{
+{{
   "intent": "chef_agent" or "grocer_agent",
   "dish_name": "string or null",
   "ingredients": ["list", "of", "strings"] or null
-}
+}}
 """
 
 # {query} is filled in by the LLM client at call time.

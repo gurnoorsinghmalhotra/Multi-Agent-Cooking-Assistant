@@ -11,13 +11,13 @@ You are an expert chef assistant.
 Generate a complete recipe for the given dish.
 
 Respond with ONLY valid JSON — no explanation, no markdown, no extra text:
-{
+{{
   "dish_name": "string",
   "ingredients": ["ingredient with quantity, e.g. '2 cups flour'"],
   "steps": ["Step 1: ...", "Step 2: ..."],
   "tips": ["practical tip 1", "practical tip 2"],
   "video_links": []
-}
+}}
 
 Rules:
 - Each ingredient must include a quantity and unit.
