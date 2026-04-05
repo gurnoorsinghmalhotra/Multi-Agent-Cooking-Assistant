@@ -22,6 +22,7 @@ click==8.3.1
 colorama==0.4.6 ; sys_platform == 'win32'
     # via
     #   click
+    #   pytest
     #   tqdm
     #   uvicorn
 distro==1.9.0
@@ -46,6 +47,8 @@ idna==3.11
     #   anyio
     #   httpx
     #   requests
+iniconfig==2.3.0
+    # via pytest
 jiter==0.13.0
     # via openai
 jsonpatch==1.33
@@ -87,6 +90,9 @@ packaging==26.0
     # via
     #   langchain-core
     #   langsmith
+    #   pytest
+pluggy==1.6.0
+    # via pytest
 pydantic==2.12.5
     # via
     #   fastapi
@@ -96,11 +102,21 @@ pydantic==2.12.5
     #   langsmith
     #   multi-agent-cooking-assistant
     #   openai
+    #   pydantic-settings
 pydantic-core==2.41.5
     # via pydantic
+pydantic-settings==2.13.1
+    # via multi-agent-cooking-assistant
+pygments==2.20.0
+    # via pytest
+pytest==9.0.2
+    # via pytest-asyncio
+pytest-asyncio==1.3.0
+    # via multi-agent-cooking-assistant
 python-dotenv==1.2.2
     # via
     #   multi-agent-cooking-assistant
+    #   pydantic-settings
     #   uvicorn
 pyyaml==6.0.3
     # via
@@ -137,6 +153,7 @@ typing-inspection==0.4.2
     # via
     #   fastapi
     #   pydantic
+    #   pydantic-settings
 urllib3==2.6.3
     # via requests
 uuid-utils==0.14.1
