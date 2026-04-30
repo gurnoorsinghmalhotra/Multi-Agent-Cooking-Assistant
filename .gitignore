@@ -205,6 +205,9 @@ cython_debug/
 .claude/
 .claude
 
+# Documentation
+CODEBASE_DOCUMENTATION.md
+
 # Marimo
 marimo/_static/
 marimo/_lsp/
