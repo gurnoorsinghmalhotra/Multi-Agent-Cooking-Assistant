@@ -38,6 +38,19 @@ _STORE_PRICES: dict[str, dict[str, float]] = {
 
 _STORES = list(_STORE_PRICES.keys())
 
+# Mocked delivery data per store: fixed base time + flat fee.
+_STORE_DELIVERY: dict[str, dict] = {
+    "Walmart":      {"delivery_time_mins": 120, "delivery_fee": 0.00},
+    "Whole Foods":  {"delivery_time_mins": 45,  "delivery_fee": 9.95},
+    "Trader Joe's": {"delivery_time_mins": 240, "delivery_fee": 3.99},
+}
+
+
+def get_store_delivery(store: str) -> tuple[int, float]:
+    """Return (delivery_time_mins, delivery_fee) for a store."""
+    info = _STORE_DELIVERY[store]
+    return info["delivery_time_mins"], info["delivery_fee"]
+
 
 # --- I/O-bound: simulates a network request to a single store ---
 
@@ -89,3 +102,27 @@ async def fetch_prices(ingredients: list[str]) -> list[GroceryItem]:
             best_items.append(GroceryItem(name=ingredient, price=2.99, store="Generic Store"))
 
     return best_items # example output: [GroceryItem(name='chicken', price=5.99, store='Walmart'), GroceryItem(name='pasta', price=1.49, store='Walmart'), ...]
+
+
+async def fetch_all_store_prices(
+    ingredients: list[str],
+) -> dict[str, list[Optional[GroceryItem]]]:
+    """Return the full price matrix: store → list of items (None if not stocked).
+
+    Reuses _fetch_from_store concurrently — same pattern as fetch_prices but
+    organised by store instead of picking cheapest.
+    """
+    n_stores = len(_STORES)
+    tasks = [
+        _fetch_from_store(ingredient, store)
+        for ingredient in ingredients
+        for store in _STORES
+    ]
+    all_results = await asyncio.gather(*tasks)
+
+    store_map: dict[str, list[Optional[GroceryItem]]] = {s: [] for s in _STORES}
+    for i, ingredient in enumerate(ingredients):
+        store_results = all_results[i * n_stores : (i + 1) * n_stores]
+        for j, store in enumerate(_STORES):
+            store_map[store].append(store_results[j])
+    return store_map

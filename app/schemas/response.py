@@ -11,13 +11,14 @@ from pydantic import BaseModel
 
 from app.schemas.chef import ChefOutput
 from app.schemas.grocer import GrocerOutput
+from app.schemas.ranking import StoreRankingOutput
 
 
 class QueryResponse(BaseModel):
     """Top-level response returned by POST /query."""
 
     # Which agent handled this query — echoed back so clients can branch on it.
-    intent: Literal["chef_agent", "grocer_agent"]
+    intent: Literal["chef_agent", "grocer_agent", "ranking_agent"]
 
-    # Structured payload — either a full recipe or a grocery cart.
-    data: Union[ChefOutput, GrocerOutput]
+    # Structured payload — recipe, grocery cart, or store ranking.
+    data: Union[ChefOutput, GrocerOutput, StoreRankingOutput]

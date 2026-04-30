@@ -9,8 +9,8 @@ from typing import List, Literal, Optional
 
 from pydantic import BaseModel
 
-# The two valid routing targets in the system.
-IntentLabel = Literal["chef_agent", "grocer_agent"]
+# The valid routing targets in the system.
+IntentLabel = Literal["chef_agent", "grocer_agent", "ranking_agent"]
 
 
 class IntentOutput(BaseModel):
