@@ -10,6 +10,7 @@ router = APIRouter()
 
 
 @router.post("/query", response_model=QueryResponse)
+@router.post("/query/", response_model=QueryResponse, include_in_schema=False)
 async def query(request: QueryRequest) -> QueryResponse:
     """Accept a natural language cooking query and return structured agent output."""
     try:
