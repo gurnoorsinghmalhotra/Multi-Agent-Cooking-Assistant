@@ -76,6 +76,75 @@
       ]
     },
     {
+      "name": "Ranking — Budget (Price Priority)",
+      "request": {
+        "method": "POST",
+        "url": "{{base_url}}/query",
+        "description": "Store ranking request with a clear price signal ('cheapest'). Rule-based detection kicks in (no LLM call for preferences). Walmart should rank #1 — lowest subtotal and free delivery.",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"query\": \"Which store is cheapest for pasta and chicken?\"\n}",
+          "options": { "raw": { "language": "json" } }
+        }
+      },
+      "response": [
+        {
+          "name": "200 OK — ranking_agent (budget)",
+          "status": "OK",
+          "code": 200,
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "body": "{\n  \"intent\": \"ranking_agent\",\n  \"data\": {\n    \"stores\": [\n      { \"name\": \"Walmart\",      \"total_cost\": 7.48,  \"delivery_time_mins\": 120, \"score\": 0.923 },\n      { \"name\": \"Trader Joe's\", \"total_cost\": 12.97, \"delivery_time_mins\": 240, \"score\": 0.496 },\n      { \"name\": \"Whole Foods\",  \"total_cost\": 21.93, \"delivery_time_mins\": 45,  \"score\": 0.2 }\n    ],\n    \"best_store\": \"Walmart\"\n  }\n}"
+        }
+      ]
+    },
+    {
+      "name": "Ranking — Fast Delivery Priority",
+      "request": {
+        "method": "POST",
+        "url": "{{base_url}}/query",
+        "description": "Store ranking request with a clear speed signal ('fast', 'tonight'). Rule-based detection assigns delivery_weight=0.8. Whole Foods ranks #1 — 45-minute express delivery despite higher cost.",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"query\": \"I need pasta and chicken fast tonight, which store should I order from?\"\n}",
+          "options": { "raw": { "language": "json" } }
+        }
+      },
+      "response": [
+        {
+          "name": "200 OK — ranking_agent (fast delivery)",
+          "status": "OK",
+          "code": 200,
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "body": "{\n  \"intent\": \"ranking_agent\",\n  \"data\": {\n    \"stores\": [\n      { \"name\": \"Whole Foods\",  \"total_cost\": 21.93, \"delivery_time_mins\": 45,  \"score\": 0.8 },\n      { \"name\": \"Walmart\",      \"total_cost\": 7.48,  \"delivery_time_mins\": 120, \"score\": 0.692 },\n      { \"name\": \"Trader Joe's\", \"total_cost\": 12.97, \"delivery_time_mins\": 240, \"score\": 0.124 }\n    ],\n    \"best_store\": \"Whole Foods\"\n  }\n}"
+        }
+      ]
+    },
+    {
+      "name": "Ranking — Balanced / Ambiguous (LLM Fallback)",
+      "request": {
+        "method": "POST",
+        "url": "{{base_url}}/query",
+        "description": "Ambiguous query with no clear price or delivery keywords. Rule-based detection returns None, triggering a single LLM call to extract weights. Weights default to ~0.5/0.5 — Walmart still wins on combined score.",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"query\": \"Best place to buy lasagna ingredients\"\n}",
+          "options": { "raw": { "language": "json" } }
+        }
+      },
+      "response": [
+        {
+          "name": "200 OK — ranking_agent (balanced)",
+          "status": "OK",
+          "code": 200,
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "body": "{\n  \"intent\": \"ranking_agent\",\n  \"data\": {\n    \"stores\": [\n      { \"name\": \"Walmart\",      \"total_cost\": 9.24,  \"delivery_time_mins\": 120, \"score\": 0.808 },\n      { \"name\": \"Trader Joe's\", \"total_cost\": 14.72, \"delivery_time_mins\": 240, \"score\": 0.31 },\n      { \"name\": \"Whole Foods\",  \"total_cost\": 31.87, \"delivery_time_mins\": 45,  \"score\": 0.5 }\n    ],\n    \"best_store\": \"Walmart\"\n  }\n}"
+        }
+      ]
+    },
+    {
       "name": "Validation Error — Empty Query",
       "request": {
         "method": "POST",

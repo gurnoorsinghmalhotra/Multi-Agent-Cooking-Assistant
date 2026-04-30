@@ -25,7 +25,7 @@ def _get_preferences(query: str) -> Optional[Tuple[float, float]]:
 
     Returns None when the query is ambiguous — caller falls back to LLM.
     """
-    tokens = set(query.lower().split())
+    tokens = {t.strip(".,!?;:'\"") for t in query.lower().split()}
     has_price = bool(tokens & _PRICE_KEYWORDS)
     has_delivery = bool(tokens & _DELIVERY_KEYWORDS)
 
