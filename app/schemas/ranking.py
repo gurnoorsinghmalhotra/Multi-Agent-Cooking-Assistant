@@ -17,5 +17,5 @@ class StoreRank(BaseModel):
 
 class StoreRankingOutput(BaseModel):
     stores: List[StoreRank]
-    best_store: str
+    best_store: StoreRank
     ingredients: List[str]

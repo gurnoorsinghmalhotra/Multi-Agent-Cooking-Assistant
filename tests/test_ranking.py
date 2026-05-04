@@ -38,15 +38,15 @@ _MOCK_STORE_PRICES = {
 #   Whole Foods  8.99+2.99+9.95  = 21.93  |   45 min
 #   Trader Joe's 6.99+1.99+3.99  = 12.97  |  240 min
 
+_WALMART = StoreRank(name="Walmart",      total_cost=7.48,  delivery_time_mins=120, score=0.923, items=_MOCK_STORE_PRICES["Walmart"])
+_TJ      = StoreRank(name="Trader Joe's", total_cost=12.97, delivery_time_mins=240, score=0.496, items=_MOCK_STORE_PRICES["Trader Joe's"])
+_WF      = StoreRank(name="Whole Foods",  total_cost=21.93, delivery_time_mins=45,  score=0.200, items=_MOCK_STORE_PRICES["Whole Foods"])
+
 RANKING_RESPONSE = QueryResponse(
     intent="ranking_agent",
     data=StoreRankingOutput(
-        stores=[
-            StoreRank(name="Walmart",      total_cost=7.48,  delivery_time_mins=120, score=0.923, items=_MOCK_STORE_PRICES["Walmart"]),
-            StoreRank(name="Trader Joe's", total_cost=12.97, delivery_time_mins=240, score=0.496, items=_MOCK_STORE_PRICES["Trader Joe's"]),
-            StoreRank(name="Whole Foods",  total_cost=21.93, delivery_time_mins=45,  score=0.200, items=_MOCK_STORE_PRICES["Whole Foods"]),
-        ],
-        best_store="Walmart",
+        stores=[_WALMART, _TJ, _WF],
+        best_store=_WALMART,
         ingredients=_INGREDIENTS,
     ),
 )
@@ -203,7 +203,7 @@ async def test_rank_stores_budget_preference_walmart_wins():
          patch("app.agents.ranking_agent._resolve_ingredients", new_callable=AsyncMock, return_value=_INGREDIENTS):
         result = await rank_stores(intent, "cheapest store for chicken and pasta")
 
-    assert result.best_store == "Walmart"
+    assert result.best_store.name == "Walmart"
     assert result.stores[0].name == "Walmart"
 
 
@@ -218,7 +218,7 @@ async def test_rank_stores_fast_preference_whole_foods_wins():
          patch("app.agents.ranking_agent._resolve_ingredients", new_callable=AsyncMock, return_value=_INGREDIENTS):
         result = await rank_stores(intent, "I need chicken and pasta fast tonight")
 
-    assert result.best_store == "Whole Foods"
+    assert result.best_store.name == "Whole Foods"
     assert result.stores[0].name == "Whole Foods"
 
 
@@ -261,7 +261,7 @@ async def test_rank_stores_best_store_matches_first_entry():
          patch("app.agents.ranking_agent._resolve_ingredients", new_callable=AsyncMock, return_value=_INGREDIENTS):
         result = await rank_stores(intent, "cheapest store")
 
-    assert result.best_store == result.stores[0].name
+    assert result.best_store == result.stores[0]
 
 
 @pytest.mark.asyncio
@@ -405,7 +405,7 @@ async def test_ranking_response_best_store_matches_first_entry():
         async with make_client() as client:
             response = await client.post("/query", json={"query": "Which store is cheapest for pasta?"})
     data = response.json()["data"]
-    assert data["best_store"] == data["stores"][0]["name"]
+    assert data["best_store"]["name"] == data["stores"][0]["name"]
 
 
 @pytest.mark.asyncio

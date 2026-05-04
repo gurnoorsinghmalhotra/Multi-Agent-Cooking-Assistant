@@ -107,4 +107,4 @@ async def rank_stores(intent: IntentOutput, query: str) -> StoreRankingOutput:
         ))
 
     ranked.sort(key=lambda s: s.score, reverse=True)
-    return StoreRankingOutput(stores=ranked, best_store=ranked[0].name, ingredients=ingredient_names)
+    return StoreRankingOutput(stores=ranked, best_store=ranked[0], ingredients=ingredient_names)
