@@ -42,11 +42,12 @@ RANKING_RESPONSE = QueryResponse(
     intent="ranking_agent",
     data=StoreRankingOutput(
         stores=[
-            StoreRank(name="Walmart",      total_cost=7.48,  delivery_time_mins=120, score=0.923),
-            StoreRank(name="Trader Joe's", total_cost=12.97, delivery_time_mins=240, score=0.496),
-            StoreRank(name="Whole Foods",  total_cost=21.93, delivery_time_mins=45,  score=0.200),
+            StoreRank(name="Walmart",      total_cost=7.48,  delivery_time_mins=120, score=0.923, items=_MOCK_STORE_PRICES["Walmart"]),
+            StoreRank(name="Trader Joe's", total_cost=12.97, delivery_time_mins=240, score=0.496, items=_MOCK_STORE_PRICES["Trader Joe's"]),
+            StoreRank(name="Whole Foods",  total_cost=21.93, delivery_time_mins=45,  score=0.200, items=_MOCK_STORE_PRICES["Whole Foods"]),
         ],
         best_store="Walmart",
+        ingredients=_INGREDIENTS,
     ),
 )
 
@@ -385,6 +386,8 @@ async def test_ranking_response_stores_have_required_fields():
         assert "total_cost" in store
         assert "delivery_time_mins" in store
         assert "score" in store
+        assert "items" in store
+        assert isinstance(store["items"], list)
 
 
 @pytest.mark.asyncio
@@ -412,3 +415,43 @@ async def test_ranking_scores_are_between_zero_and_one():
             response = await client.post("/query", json={"query": "Which store is cheapest for pasta?"})
     for store in response.json()["data"]["stores"]:
         assert 0.0 <= store["score"] <= 1.0
+
+
+@pytest.mark.asyncio
+async def test_ranking_response_has_top_level_ingredients():
+    with patch("app.api.routes.handle_query", new_callable=AsyncMock, return_value=RANKING_RESPONSE):
+        async with make_client() as client:
+            response = await client.post("/query", json={"query": "cheapest for pasta?"})
+    data = response.json()["data"]
+    assert "ingredients" in data
+    assert data["ingredients"] == _INGREDIENTS
+
+
+@pytest.mark.asyncio
+async def test_rank_stores_items_populated_per_store():
+    from app.agents.ranking_agent import rank_stores
+    from app.schemas.intent import IntentOutput
+
+    intent = IntentOutput(intent="ranking_agent", ingredients=_INGREDIENTS)
+    with patch("app.agents.ranking_agent.fetch_all_store_prices", new_callable=AsyncMock, return_value=_MOCK_STORE_PRICES), \
+         patch("app.agents.ranking_agent._resolve_ingredients", new_callable=AsyncMock, return_value=_INGREDIENTS):
+        result = await rank_stores(intent, "cheapest store")
+
+    for store_rank in result.stores:
+        assert len(store_rank.items) == len(_INGREDIENTS)
+        for item in store_rank.items:
+            assert item.store == store_rank.name
+            assert item.price > 0
+
+
+@pytest.mark.asyncio
+async def test_rank_stores_ingredients_field_echoes_resolved_list():
+    from app.agents.ranking_agent import rank_stores
+    from app.schemas.intent import IntentOutput
+
+    intent = IntentOutput(intent="ranking_agent", ingredients=_INGREDIENTS)
+    with patch("app.agents.ranking_agent.fetch_all_store_prices", new_callable=AsyncMock, return_value=_MOCK_STORE_PRICES), \
+         patch("app.agents.ranking_agent._resolve_ingredients", new_callable=AsyncMock, return_value=_INGREDIENTS):
+        result = await rank_stores(intent, "cheapest store")
+
+    assert result.ingredients == _INGREDIENTS

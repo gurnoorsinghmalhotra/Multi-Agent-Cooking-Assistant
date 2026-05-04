@@ -37,11 +37,11 @@ def _get_preferences(query: str) -> Optional[Tuple[float, float]]:
         return (0.5, 0.5)  # conflicting signals — balanced
     return None  # ambiguous → LLM fallback
 
-
+# Normalization helper: scales a list of values to [0, 1], where higher is better.
 def _normalize(values: List[float]) -> List[float]:
     lo, hi = min(values), max(values)
     if hi == lo:
-        return [0.5] * len(values)
+        return [0.5] * len(values) 
     return [(v - lo) / (hi - lo) for v in values]
 
 
@@ -79,13 +79,16 @@ async def rank_stores(intent: IntentOutput, query: str) -> StoreRankingOutput:
     # 4. Compute per-store totals
     costs: List[float] = []
     times: List[int] = []
+    store_items: List[List] = []
 
     for store in _STORES:
-        items = store_price_map[store]
-        subtotal = sum(item.price for item in items if item is not None)
+        raw = store_price_map[store]
+        available = [item for item in raw if item is not None]
+        subtotal = sum(item.price for item in available)
         delivery_time, delivery_fee = get_store_delivery(store)
         costs.append(round(subtotal + delivery_fee, 2))
         times.append(delivery_time)
+        store_items.append(available)
 
     # 5. Normalize and invert (lower cost/time = higher score)
     price_scores = [1.0 - v for v in _normalize(costs)]
@@ -100,7 +103,8 @@ async def rank_stores(intent: IntentOutput, query: str) -> StoreRankingOutput:
             total_cost=costs[i],
             delivery_time_mins=times[i],
             score=score,
+            items=store_items[i],
         ))
 
     ranked.sort(key=lambda s: s.score, reverse=True)
-    return StoreRankingOutput(stores=ranked, best_store=ranked[0].name)
+    return StoreRankingOutput(stores=ranked, best_store=ranked[0].name, ingredients=ingredient_names)
